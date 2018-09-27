@@ -10,5 +10,17 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
+# Build the project
+- script: dotnet build --configuration $(buildConfiguration) -o ..\artifacts\
   displayName: 'dotnet build $(buildConfiguration)'
+
+#Package the bin folder
+- powershell: Compress-Archive -Path .\artifacts\* -DestinationPath .\artifacts.zip
+
+# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+- task: CopyFiles@2
+  inputs:
+    contents: 'artifacts.zip' 
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishBuildArtifacts@1
