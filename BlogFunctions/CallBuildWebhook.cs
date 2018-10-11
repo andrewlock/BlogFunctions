@@ -20,12 +20,12 @@ namespace BlogFunctions
 
         static async Task TriggerBuild()
         {
-            var BuildHookBaseUrl = Environment.GetEnvironmentVariable("BuildHookBaseUrl");
+            var buildHookBaseUrl = Environment.GetEnvironmentVariable("BuildHookBaseUrl");
             var path = Environment.GetEnvironmentVariable("BuildHookPath");
 
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("BuildHookBaseUrl");
+                client.BaseAddress = new Uri(buildHookBaseUrl);
 
                 await client.PostAsJsonAsync(path, "{}");
             }
