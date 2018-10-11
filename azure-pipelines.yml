@@ -1,26 +1,27 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+trigger:
+- master
 
-pool:
-  vmImage: 'vs2017-win2017'
+jobs:
+- job: Windows build
 
-variables:
-  buildConfiguration: 'Release'
+    pool:
+      vmImage: 'vs2017-win2017'
 
-steps:
-# Build the project
-- script: dotnet build --configuration $(buildConfiguration) -o ..\artifacts\
-  displayName: 'dotnet build $(buildConfiguration)'
+    variables:
+      buildConfiguration: 'Release'
 
-#Package the bin folder
-- powershell: Compress-Archive -Path .\artifacts\* -DestinationPath .\artifacts.zip
+    steps:
+    # Build the project
+    - script: dotnet build --configuration $(buildConfiguration) -o ..\artifacts\
+      displayName: 'dotnet build $(buildConfiguration)'
 
-# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
-- task: CopyFiles@2
-  inputs:
-    contents: 'artifacts.zip' 
-    targetFolder: $(Build.ArtifactStagingDirectory)
+    #Package the bin folder
+    - powershell: Compress-Archive -Path .\artifacts\* -DestinationPath .\artifacts.zip
 
-- task: PublishBuildArtifacts@1
+    # Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+    - task: CopyFiles@2
+      inputs:
+        contents: 'artifacts.zip' 
+        targetFolder: $(Build.ArtifactStagingDirectory)
+
+    - task: PublishBuildArtifacts@1
