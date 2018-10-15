@@ -8,10 +8,12 @@ namespace BlogFunctions
 {
     public static class CallBuildWebhook
     {
+        // {second=0} {minute=15} {hour=10} {day} {month} {day-of-week=(2=Tuesday)}
+        private const string TimerSChedule = "0 15 10 * * 2";
         private static HttpClient _client = new HttpClient();
 
         [FunctionName("CallBuildWebhook")]
-        public static async Task RunAsync([TimerTrigger("0 15 10 * * 2")]TimerInfo myTimer, ILogger log)
+        public static async Task RunAsync([TimerTrigger(TimerSChedule)]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"Tiggering Blog rebuild at: {DateTime.Now}");
 
