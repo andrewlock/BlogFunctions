@@ -11,6 +11,11 @@ namespace BlogFunctions
 {
     public static class ClearCloudflareCache
     {
+        private static HttpClient _client = new HttpClient
+        {
+            BaseAddress = new Uri("https://api.cloudflare.com"),
+        };
+
         [FunctionName("ClearCloudflareCache")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
@@ -28,23 +33,20 @@ namespace BlogFunctions
 
             var path = $"/client/v4/zones/{zoneId}/purge_cache";
             var body = new { purge_everything = true };
-            using (var client = new HttpClient())
+
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Add("X-Auth-Email", xAuthEmail);
+            _client.DefaultRequestHeaders.Add("X-Auth-Key", xAuthKey);
+
+            var response = await _client.PostAsJsonAsync(path, body);
+
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri("https://api.cloudflare.com");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Add("X-Auth-Email", xAuthEmail);
-                client.DefaultRequestHeaders.Add("X-Auth-Key", xAuthKey);
-
-                var response = await client.PostAsJsonAsync(path, body);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    log.LogInformation("Cloudflare response: " + await response.Content.ReadAsStringAsync());
-                    return new OkObjectResult("Cloudflare CDN Cleared");
-                }
-
-                return new BadRequestObjectResult("Cloudflare rejected clear-cache request");
+                log.LogInformation("Cloudflare response: " + await response.Content.ReadAsStringAsync());
+                return new OkObjectResult("Cloudflare CDN Cleared");
             }
+
+            return new BadRequestObjectResult("Cloudflare rejected clear-cache request");
         }
     }
 }
