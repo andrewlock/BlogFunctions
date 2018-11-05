@@ -22,11 +22,6 @@ namespace BlogFunctions
         {
             log.LogInformation("Clear Cloudflare cache triggered");
 
-            return await CallCloudflareToClearCache(req, log);
-        }
-
-        static async Task<IActionResult> CallCloudflareToClearCache(HttpRequest req, ILogger log)
-        {
             var zoneId = Environment.GetEnvironmentVariable("ZoneId");
             var xAuthEmail = Environment.GetEnvironmentVariable("X-Auth-Email");
             var xAuthKey = Environment.GetEnvironmentVariable("X-Auth-Key");
@@ -40,12 +35,14 @@ namespace BlogFunctions
 
             var response = await _client.PostAsJsonAsync(path, body);
 
+            var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                log.LogInformation("Cloudflare response: " + await response.Content.ReadAsStringAsync());
+                log.LogInformation("Cloudflare response: " + content);
                 return new OkObjectResult("Cloudflare CDN Cleared");
             }
 
+            log.LogError("Cloudflare rejected clear-cache request {StatusCode}: {Reason}", response.StatusCode, content);
             return new BadRequestObjectResult("Cloudflare rejected clear-cache request");
         }
     }
